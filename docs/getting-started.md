@@ -55,6 +55,48 @@ From the repo root:
 
 ```bash
 cd /Users/ilan/code/chaos
+PYTHONPATH=src python3 -m agent_control.webapp --db agent-control.db --port 8000
+```
+
+Then open [http://127.0.0.1:8000](http://127.0.0.1:8000).
+
+This is the easiest way to experience Chaos because it exposes:
+
+- run launch controls
+- approval queue
+- event timeline
+- task board
+- artifact viewer
+
+If you want to run the dashboard in a more production-like mode, start it with an API token:
+
+```bash
+cd /Users/ilan/code/chaos
+PYTHONPATH=src python3 -m agent_control.webapp \
+  --db agent-control.db \
+  --port 8000 \
+  --environment production \
+  --api-token "replace-me"
+```
+
+Then:
+
+- open the dashboard as usual
+- click `Set API Token` in the header
+- paste the same token to unlock dashboard API access
+- launch and resume actions will be accepted immediately, then continue in the background
+
+Public operational endpoints:
+
+- `GET /api/health`
+- `GET /api/meta`
+- `GET /api/jobs`
+- `GET /api/jobs/<job_id>`
+
+If you want the terminal-only version instead:
+
+```bash
+cd /Users/ilan/code/chaos
 PYTHONPATH=src python3 -m agent_control.demo
 ```
 
@@ -209,7 +251,8 @@ This is the durable source of truth for:
 
 If you want to turn Chaos into a more complete product, the next highest-value steps are:
 
-- add a lightweight web operator UI
 - replace the rule-based planner with a real model provider adapter
-- add dependency-aware child task graphs
+- move from SQLite-only local state to Postgres plus migrations
+- split the web app from background workers and queues
+- add real auth/RBAC instead of single shared API-token protection
 - add retries and dead-letter handling for failed tools

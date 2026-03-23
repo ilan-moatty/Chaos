@@ -8,7 +8,7 @@ from typing import Optional
 from agent_control.models import ToolRequestStatus
 from agent_control.runtime import approve_tool_request, build_runtime, deny_tool_request
 from agent_control.store import SqliteStore
-from agent_control.supervisor import build_root_task
+from agent_control.workflows import start_demo_run
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -39,29 +39,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 async def command_demo(db_path: str) -> None:
     supervisor, store, _ = build_runtime(db_path)
-    run = await supervisor.submit_run("Design a manageable multi-agent coordination system.")
-
-    research_task = build_root_task(
-        run_id=run.id,
-        title="Research coordination patterns",
-        description="Gather patterns for multi-agent orchestration and human control.",
-        capability="research",
-        priority=10,
-    )
-    execution_task = build_root_task(
-        run_id=run.id,
-        title="Design runtime kernel",
-        description="Define supervisor, task board, event log, and tool gateway.",
-        capability="execution",
-        priority=20,
-    )
-    execution_task.inputs["spawn_review"] = True
-    execution_task.inputs["request_publish_approval"] = True
-    execution_task.inputs["publish_channel"] = "operator"
-
-    await supervisor.add_task(research_task)
-    await supervisor.add_task(execution_task)
-    await supervisor.run_until_stable(run)
+    run = await start_demo_run(supervisor)
 
     print(f"run_id={run.id} status={store.get_run(run.id).status.value}")
     pending = store.list_tool_requests(run_id=run.id, status=ToolRequestStatus.PENDING_APPROVAL)

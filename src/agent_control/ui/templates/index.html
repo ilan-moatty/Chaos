@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chaos Control Room</title>
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <div class="page-shell">
+      <div class="ambient ambient-a"></div>
+      <div class="ambient ambient-b"></div>
+
+      <header class="global-nav">
+        <div class="nav-inner">
+          <div class="brand-mark">
+            <span class="brand-dot"></span>
+            <span>Chaos</span>
+          </div>
+          <nav class="nav-links">
+            <span>Dashboard</span>
+            <span>Runs</span>
+            <span>Approvals</span>
+            <span>Artifacts</span>
+          </nav>
+          <div class="nav-badge">
+            <span class="nav-live-dot"></span>
+            <span id="live-status">Ready</span>
+          </div>
+          <div class="nav-auth">
+            <span id="auth-status" class="nav-auth-status">Local mode</span>
+            <button class="pixel-btn tertiary small" id="auth-action" data-allow-while-busy="true">Set API Token</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="page">
+        <section id="notice-banner" class="notice-banner hidden" aria-live="polite"></section>
+
+        <section class="hero-card">
+          <div class="hero-copy">
+            <div class="eyebrow">Multi-Agent Control</div>
+            <h1>One place to see, steer, and approve agent work.</h1>
+            <p>
+              Launch workflows, inspect task state, review artifacts, and unblock paused runs
+              from a calm operator console designed for clarity.
+            </p>
+            <div class="hero-actions">
+              <button class="pixel-btn primary" data-action="launch-demo">Launch Demo Run</button>
+              <button class="pixel-btn secondary" data-action="launch-release">Launch Release Brief</button>
+            </div>
+          </div>
+
+          <div class="hero-visual">
+            <div class="glass-orb orb-large"></div>
+            <div class="glass-orb orb-small"></div>
+            <div class="hero-metrics">
+              <div class="hero-metric">
+                <span>Runs</span>
+                <strong id="stat-runs">0</strong>
+              </div>
+              <div class="hero-metric">
+                <span>Needs Approval</span>
+                <strong id="stat-approvals">0</strong>
+              </div>
+              <div class="hero-metric">
+                <span>Active</span>
+                <strong id="stat-active">0</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="stats-strip">
+          <article class="stat-card">
+            <span class="stat-label">Total Runs</span>
+            <strong id="stat-runs-secondary">0</strong>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">Active</span>
+            <strong id="stat-active-secondary">0</strong>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">Paused</span>
+            <strong id="stat-paused">0</strong>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">Pending Approvals</span>
+            <strong id="stat-approvals-secondary">0</strong>
+          </article>
+        </section>
+
+        <section id="onboarding-panel" class="surface onboarding-panel hidden">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Getting Started</div>
+              <div class="panel-subtitle">A quick path to your first useful run.</div>
+            </div>
+          </div>
+          <div class="onboarding-grid">
+            <article class="onboarding-card">
+              <span class="onboarding-step">Step 1</span>
+              <strong>Launch a sample workflow</strong>
+              <p>Use Demo Run for a quick overview, or Release Brief for a more realistic operator flow.</p>
+            </article>
+            <article class="onboarding-card">
+              <span class="onboarding-step">Step 2</span>
+              <strong>Watch the run pause for approval</strong>
+              <p>Chaos stops when a tool needs a decision, so you always know when human review matters.</p>
+            </article>
+            <article class="onboarding-card">
+              <span class="onboarding-step">Step 3</span>
+              <strong>Approve, resume, and review outputs</strong>
+              <p>The dashboard shows tasks, artifacts, and the event story in one place after the run completes.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="surface attention-panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Needs Attention</div>
+              <div class="panel-subtitle">Quick decisions and shortcuts for paused work.</div>
+            </div>
+          </div>
+          <div id="attention-list" class="attention-list"></div>
+        </section>
+
+        <section class="dashboard-grid">
+          <aside class="surface run-list-panel">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">Runs</div>
+                <div class="panel-subtitle">Select a workflow to inspect its live state.</div>
+              </div>
+              <button class="pixel-btn tertiary small" id="refresh-runs">Refresh</button>
+            </div>
+            <div id="run-list" class="run-list"></div>
+          </aside>
+
+          <section class="detail-column">
+            <article class="surface detail-hero">
+              <div class="panel-header detail-top">
+                <div>
+                  <div class="panel-title">Run Detail</div>
+                  <div id="run-subtitle" class="panel-subtitle">Select a run to inspect its state.</div>
+                </div>
+                <div class="detail-actions">
+                  <button class="pixel-btn tertiary small" id="focus-approvals" disabled>Focus Approvals</button>
+                  <button class="pixel-btn tertiary small" id="resume-run" disabled>Resume Run</button>
+                </div>
+              </div>
+
+              <div id="detail-empty" class="empty-state">
+                Choose a run from the left, or launch a sample workflow above to see approvals, artifacts, and the event trail appear here.
+              </div>
+
+              <div id="detail-content" class="detail-content hidden">
+                <section class="mini-grid">
+                  <article class="mini-card">
+                    <span>Status</span>
+                    <strong id="detail-status">-</strong>
+                  </article>
+                  <article class="mini-card">
+                    <span>Tasks</span>
+                    <strong id="detail-tasks">0</strong>
+                  </article>
+                  <article class="mini-card">
+                    <span>Completed</span>
+                    <strong id="detail-completed">0</strong>
+                  </article>
+                  <article class="mini-card">
+                    <span>Pending Approvals</span>
+                    <strong id="detail-approvals">0</strong>
+                  </article>
+                </section>
+
+                <section class="overview-panel">
+                  <div class="overview-progress-top">
+                    <span id="detail-progress-label">0% complete</span>
+                    <span id="detail-created">Just now</span>
+                  </div>
+                  <div class="progress-track">
+                    <span id="detail-progress-bar"></span>
+                  </div>
+                  <div id="detail-note" class="detail-note">
+                    Select a run to see what needs attention next.
+                  </div>
+                </section>
+              </div>
+            </article>
+
+            <div id="detail-content-grid" class="hidden">
+              <article class="surface content-card content-card-large">
+                <div class="content-toolbar">
+                  <div class="subpanel-title" id="detail-section-title">Task Board</div>
+                  <div class="segmented-control" id="detail-tabs">
+                    <button class="segment is-active" data-tab-target="tasks">Tasks</button>
+                    <button class="segment" data-tab-target="approvals">Approvals</button>
+                    <button class="segment" data-tab-target="artifacts">Artifacts</button>
+                    <button class="segment" data-tab-target="timeline">Timeline</button>
+                  </div>
+                </div>
+
+                <div class="detail-pane" data-tab-pane="tasks">
+                  <div id="task-board" class="task-board"></div>
+                </div>
+                <div class="detail-pane hidden" data-tab-pane="approvals">
+                  <div id="approval-list" class="approval-list"></div>
+                </div>
+                <div class="detail-pane hidden" data-tab-pane="artifacts">
+                  <div id="artifact-list" class="artifact-list"></div>
+                </div>
+                <div class="detail-pane hidden" data-tab-pane="timeline">
+                  <div id="event-list" class="event-list"></div>
+                </div>
+              </article>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <template id="run-card-template">
+      <button class="run-card">
+        <div class="run-card-top">
+          <span class="run-id"></span>
+          <span class="status-pill"></span>
+        </div>
+        <strong class="run-objective"></strong>
+        <div class="run-meta"></div>
+      </button>
+    </template>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

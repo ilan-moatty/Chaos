@@ -35,7 +35,50 @@ This scaffold is designed to avoid those failure modes first.
 
 ## Quick Start
 
-### 1. Run the demo
+### 1. Launch the operator UI
+
+```bash
+cd /Users/ilan/code/chaos
+PYTHONPATH=src python3 -m agent_control.webapp --db agent-control.db --port 8000
+```
+
+Then open [http://127.0.0.1:8000](http://127.0.0.1:8000).
+
+The UI gives you:
+
+- a modern run dashboard
+- launch buttons for sample workflows
+- task board and event timeline
+- approval and resume controls
+- artifact summaries for each run
+- background execution for run launch and resume operations
+
+For a more production-like local setup, you can protect the control API with a token:
+
+```bash
+cd /Users/ilan/code/chaos
+PYTHONPATH=src python3 -m agent_control.webapp \
+  --db agent-control.db \
+  --port 8000 \
+  --environment production \
+  --api-token "replace-me"
+```
+
+When token protection is enabled:
+
+- `/api/health` and `/api/meta` stay public for health checks and bootstrapping
+- the dashboard will prompt you for an API token in the browser
+- mutating operator actions are recorded as `operator.action` events
+- run launch and resume requests are queued as background jobs instead of blocking the HTTP request
+
+You can also configure the same settings with environment variables:
+
+- `CHAOS_API_TOKEN`
+- `CHAOS_ENV`
+- `CHAOS_OPERATOR_HEADER`
+- `CHAOS_REQUEST_LOGGING=1`
+
+### 2. Run the demo in the terminal
 
 ```bash
 cd /Users/ilan/code/chaos
@@ -44,7 +87,7 @@ PYTHONPATH=src python3 -m agent_control.demo
 
 The demo simulates a supervisor assigning a root task plus concurrent subtasks to specialized agents and emits a timeline of structured events.
 
-### 2. Operate it manually
+### 3. Operate it manually from the CLI
 
 Create a run that pauses when approval is needed:
 
@@ -69,7 +112,7 @@ PYTHONPATH=src python3 -m agent_control.cli --db agent-control.db resume <run_id
 
 This gives you a simple human-in-the-loop control surface before building a richer UI.
 
-### 3. Run a custom workflow example
+### 4. Run a custom workflow example
 
 ```bash
 cd /Users/ilan/code/chaos
@@ -101,6 +144,19 @@ It walks through:
 - `RuleBasedModelAdapter` in `src/agent_control/model_adapters.py` is where planning logic lives today.
 - `ToolGateway` in `src/agent_control/tool_gateway.py` is the right place for approval, retries, and tool auditing.
 - `SqliteStore` in `src/agent_control/store.py` is the durable system of record.
+
+## Production Foundations Added
+
+Chaos now includes a first production-oriented slice in the web control plane:
+
+- optional bearer-token protection for control APIs
+- operator attribution via request headers
+- public metadata and health endpoints
+- request logging for HTTP traffic
+- audit events for approval, deny, resume, and run launch actions
+- in-process background jobs so long-running orchestration no longer runs on the request thread
+
+The bigger production gaps still remain: real auth/RBAC, Postgres, worker queues, retries, and provider-backed agents.
 
 ## Run Tests
 

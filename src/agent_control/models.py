@@ -51,6 +51,13 @@ class ToolRequestStatus(str, Enum):
     FAILED = "FAILED"
 
 
+class JobStatus(str, Enum):
+    PENDING = "PENDING"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+
+
 @dataclass
 class Budget:
     max_steps: int = 5
@@ -136,6 +143,19 @@ class ToolRequest:
     status: ToolRequestStatus = ToolRequestStatus.PENDING_APPROVAL
     requires_approval: bool = False
     result: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+    created_at: datetime = field(default_factory=utc_now)
+    updated_at: datetime = field(default_factory=utc_now)
+
+
+@dataclass
+class OperationJob:
+    id: str
+    kind: str
+    status: JobStatus
+    operator_id: str
+    payload: Dict[str, Any] = field(default_factory=dict)
+    run_id: Optional[str] = None
     error: Optional[str] = None
     created_at: datetime = field(default_factory=utc_now)
     updated_at: datetime = field(default_factory=utc_now)
