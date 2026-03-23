@@ -1,0 +1,9 @@
+[project]
+name = "agent-control-plane"
+version = "0.1.0"
+description = "Starter scaffold for multi-agent orchestration with explicit task and event control."
+requires-python = ">=3.9"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
